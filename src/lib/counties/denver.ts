@@ -50,14 +50,14 @@ export const denver: CountyDataSource = {
 		const res = await q(SVC.parcels, {
 			where: `SITUS_ADDRESS_LINE1 LIKE '%${escaped}%' AND D_CLASS_CN LIKE 'RESIDENTIAL%'`,
 			resultRecordCount: '15',
-			outFields: 'SCHEDNUM,SITUS_ADDRESS_LINE1,SITUS_CITY,NBHD_1_CN',
+			outFields: 'SCHEDNUM,SITUS_ADDRESS_LINE1,SITUS_CITY,D_CLASS_CN',
 			returnGeometry: 'false'
 		});
 		return res.features.map((f: any) => ({
 			accountNo: f.attributes.SCHEDNUM,
 			address: f.attributes.SITUS_ADDRESS_LINE1 ?? '',
 			city: f.attributes.SITUS_CITY ?? '',
-			neighborhood: f.attributes.NBHD_1_CN ?? ''
+			neighborhood: f.attributes.D_CLASS_CN ?? ''
 		}));
 	},
 
