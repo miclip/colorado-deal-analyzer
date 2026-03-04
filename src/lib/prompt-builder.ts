@@ -12,12 +12,13 @@ function formatBaths(b: BuildingInfo): string {
 export function buildPrompt(
 	subject: PropertyData,
 	comps: CompProperty[],
-	params: InvestmentParams
+	params: InvestmentParams,
+	countyName: string = 'Boulder County'
 ): string {
 	const sections: string[] = [];
 
 	// System instruction
-	sections.push(`You are an expert real estate investment analyst specializing in the Boulder County, Colorado market. You have deep knowledge of local neighborhoods, property values, renovation costs, and market trends.
+	sections.push(`You are an expert real estate investment analyst specializing in the ${countyName}, Colorado market. You have deep knowledge of local neighborhoods, property values, renovation costs, and market trends.
 
 Analyze the following property deal using the comparable sales data provided. Show all math. Do not invent data — only use what's provided. If data is insufficient, say so.`);
 
@@ -37,7 +38,7 @@ Analyze the following property deal using the comparable sales data provided. Sh
 	sections.push(buildCompStats(comps));
 
 	// Rules
-	sections.push(buildRules());
+	sections.push(buildRules(countyName));
 
 	return sections.join('\n\n---\n\n');
 }
@@ -279,12 +280,12 @@ function buildCompStats(comps: CompProperty[]): string {
 		.join('\n');
 }
 
-function buildRules(): string {
+function buildRules(countyName: string): string {
 	return `## Rules
 - Show all math — every adjustment, every calculation
 - Do NOT average flip comps with standard market comps — analyze them separately and note the difference
 - Do NOT invent data — if information is missing, state what you'd need
-- Use Boulder County market knowledge for contextual insights (school districts, flood zones, development trends)
+- Use ${countyName} market knowledge for contextual insights (school districts, flood zones, development trends)
 - Be specific about location quality — is the comp in a comparable sub-market?
 - Flag any red flags (title issues, non-arm's-length transactions, unusual deed types)
 - Provide conservative, moderate, and aggressive scenarios where appropriate`;

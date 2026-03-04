@@ -9,6 +9,7 @@ A single-page app that fetches Colorado county property data from public ArcGIS 
 | County | Data Source | Status |
 |--------|-----------|--------|
 | Boulder | Boulder County ArcGIS (ParcelPropertyView, BLDG_ATTRIBUTES, SALES, VALUES, PARCELS_OWNER) | Full support |
+| Denver | Denver ArcGIS Online (PROP_PARCELS_A, residential_characteristics, sales_and_transfers) | Full support |
 | Larimer | Larimer County ArcGIS (Tax Parcels, Site Address, Sales) | Partial — sales + parcels only, no building attributes or values (those require bulk CSV downloads) |
 | Weld | Weld County ArcGIS Online (Account_Point, Ownership2, Imps_CurrentInvntry, Sales2, Parcels) | Full support |
 
@@ -59,6 +60,7 @@ src/lib/
 │   ├── types.ts        # CountyDataSource interface
 │   ├── index.ts        # County registry
 │   ├── boulder.ts      # Boulder County adapter
+│   ├── denver.ts       # Denver County adapter
 │   ├── larimer.ts      # Larimer County adapter (no building data)
 │   └── weld.ts         # Weld County adapter
 └── components/

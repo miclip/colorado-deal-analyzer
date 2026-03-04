@@ -1,10 +1,12 @@
 import type { CountyDataSource } from './types';
 import { boulder } from './boulder';
+import { denver } from './denver';
 import { larimer } from './larimer';
 import { weld } from './weld';
 
 export const counties: Record<string, CountyDataSource> = {
 	boulder,
+	denver,
 	larimer,
 	weld
 };

@@ -60,7 +60,7 @@
 				.filter((c) => c.building?.sqft && c.sales[0]?.price)
 				.map((c) => c.sales[0].price / c.building!.sqft);
 
-			const prompt = buildPrompt(property, comps, params);
+			const prompt = buildPrompt(property, comps, params, county.name);
 
 			analysis = {
 				subject: property,
