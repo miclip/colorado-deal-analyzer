@@ -62,6 +62,7 @@ export const denver: CountyDataSource = {
 	},
 
 	async lookupProperty(accountNo: string): Promise<PropertyData> {
+		const numericId = parseInt(accountNo, 10);
 		const [parcelRes, bldgRes, salesRes] = await Promise.all([
 			q(SVC.parcels, {
 				where: `SCHEDNUM = '${accountNo}'`,
@@ -71,7 +72,7 @@ export const denver: CountyDataSource = {
 				where: `PARID = '${accountNo}' AND CD = 1`
 			}),
 			q(SVC.sales, {
-				where: `PARID = '${accountNo}'`
+				where: `PARID = ${numericId}`
 			})
 		]);
 
@@ -89,6 +90,27 @@ export const denver: CountyDataSource = {
 		}
 
 		const bldg = bldgRes.features[0]?.attributes;
+
+		// Build sales from transfers table, or fall back to parcels layer embedded sale
+		let sales: SaleRecord[] = salesRes.features
+			.map((f: any) => ({
+				date: saleMonthDayToDate(f.attributes.SALE_YEAR, f.attributes.SALE_MONTHDAY),
+				price: f.attributes.SALE_PRICE ?? 0,
+				deedType: f.attributes.INSTRUMENT ?? '',
+				receptionNo: String(f.attributes.RECEPTION_NUM ?? '')
+			}))
+			.sort((x: SaleRecord, y: SaleRecord) => y.date.localeCompare(x.date));
+
+		if (sales.length === 0 && a.SALE_DATE) {
+			sales = [
+				{
+					date: new Date(a.SALE_DATE).toISOString().split('T')[0],
+					price: a.SALE_PRICE ?? 0,
+					deedType: a.ASAL_INSTR ?? '',
+					receptionNo: String(a.RECEPTION_NUM ?? '')
+				}
+			];
+		}
 
 		return {
 			accountNo,
@@ -123,14 +145,7 @@ export const denver: CountyDataSource = {
 						}
 					: null,
 			areas: [],
-			sales: salesRes.features
-				.map((f: any) => ({
-					date: saleMonthDayToDate(f.attributes.SALE_YEAR, f.attributes.SALE_MONTHDAY),
-					price: f.attributes.SALE_PRICE ?? 0,
-					deedType: f.attributes.INSTRUMENT ?? '',
-					receptionNo: f.attributes.RECEPTION_NUM ?? ''
-				}))
-				.sort((a: SaleRecord, b: SaleRecord) => b.date.localeCompare(a.date)),
+			sales,
 			values:
 				a.APPRAISED_TOTAL_VALUE
 					? {
@@ -266,14 +281,38 @@ export const denver: CountyDataSource = {
 	},
 
 	async getSalesHistory(accountNo) {
-		const res = await q(SVC.sales, { where: `PARID = '${accountNo}'` });
-		return res.features
-			.map((f: any) => ({
-				date: saleMonthDayToDate(f.attributes.SALE_YEAR, f.attributes.SALE_MONTHDAY),
-				price: f.attributes.SALE_PRICE ?? 0,
-				deedType: f.attributes.INSTRUMENT ?? '',
-				receptionNo: f.attributes.RECEPTION_NUM ?? ''
-			}))
-			.sort((a: SaleRecord, b: SaleRecord) => b.date.localeCompare(a.date));
+		// Try the detailed sales_and_transfers table first (has grantor/grantee/deed type)
+		const numericId = parseInt(accountNo, 10);
+		const res = await q(SVC.sales, { where: `PARID = ${numericId}` });
+
+		if (res.features.length > 0) {
+			return res.features
+				.map((f: any) => ({
+					date: saleMonthDayToDate(f.attributes.SALE_YEAR, f.attributes.SALE_MONTHDAY),
+					price: f.attributes.SALE_PRICE ?? 0,
+					deedType: f.attributes.INSTRUMENT ?? '',
+					receptionNo: String(f.attributes.RECEPTION_NUM ?? '')
+				}))
+				.sort((a: SaleRecord, b: SaleRecord) => b.date.localeCompare(a.date));
+		}
+
+		// Fallback to parcels layer embedded sale (many properties missing from sales table)
+		const parcelRes = await q(SVC.parcels, {
+			where: `SCHEDNUM = '${accountNo}'`,
+			outFields: 'SALE_DATE,SALE_PRICE,ASAL_INSTR,RECEPTION_NUM',
+			returnGeometry: 'false'
+		});
+		const p = parcelRes.features[0]?.attributes;
+		if (p?.SALE_DATE) {
+			return [
+				{
+					date: new Date(p.SALE_DATE).toISOString().split('T')[0],
+					price: p.SALE_PRICE ?? 0,
+					deedType: p.ASAL_INSTR ?? '',
+					receptionNo: String(p.RECEPTION_NUM ?? '')
+				}
+			];
+		}
+		return [];
 	}
 };
