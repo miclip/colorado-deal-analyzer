@@ -163,13 +163,13 @@ export const denver: CountyDataSource = {
 	async getRecentSales(accountNos, minDate) {
 		// Parcels layer has SALE_DATE (epoch ms) and SALE_PRICE for the most recent sale
 		// Use the parcels layer for speed since it has the last sale embedded
-		const dateMs = minDate.getTime();
+		const dateStr = minDate.toISOString().split('T')[0];
 		const batches = chunk(accountNos, 100);
 		const results = await Promise.all(
 			batches.map((batch) => {
 				const inClause = batch.map((a) => `'${a}'`).join(',');
 				return q(SVC.parcels, {
-					where: `SCHEDNUM IN (${inClause}) AND SALE_DATE > ${dateMs} AND SALE_PRICE > 50000`,
+					where: `SCHEDNUM IN (${inClause}) AND SALE_DATE > date '${dateStr}' AND SALE_PRICE > 50000`,
 					outFields: 'SCHEDNUM,SALE_DATE,SALE_PRICE,ASAL_INSTR',
 					returnGeometry: 'false',
 					resultRecordCount: '2000'
