@@ -1,30 +1,24 @@
-# Boulder Deal Analyzer
+# Colorado Deal Analyzer
 
-A single-page app that fetches Boulder County property data from public ArcGIS APIs, finds comparable sales, and generates a complete AI analysis prompt you can paste into Claude or ChatGPT.
+A single-page app that fetches Colorado county property data from public ArcGIS APIs, finds comparable sales, and generates a complete AI analysis prompt you can paste into Claude or ChatGPT.
 
-**Live:** https://miclip.github.io/boulder-deal-analyzer/
+**Live:** https://miclip.github.io/colorado-deal-analyzer/
+
+## Supported Counties
+
+| County | Data Source | Status |
+|--------|-----------|--------|
+| Boulder | Boulder County ArcGIS (ParcelPropertyView, BLDG_ATTRIBUTES, SALES, VALUES, PARCELS_OWNER) | Full support |
+| Weld | Weld County ArcGIS Online (Account_Point, Ownership2, Imps_CurrentInvntry, Sales2, Parcels) | Full support |
 
 ## How It Works
 
-1. **Search** — Type a property address. Autocomplete queries Boulder County's ParcelPropertyView.
-2. **Review** — See building details, area breakdown, assessed values, and full sale history pulled from 5 APIs in parallel.
+1. **Search** — Select a county and type a property address. Autocomplete queries the county's parcel data.
+2. **Review** — See building details, area breakdown, assessed values, and full sale history pulled from multiple APIs in parallel.
 3. **Configure** — Pick an investment strategy (Flip / Rental / Wholesale) and set parameters like rehab quality, rent targets, or assignment fees.
 4. **Generate** — The app finds comparable sales within your chosen radius, scores them by similarity, and builds a detailed analysis prompt with subject data, comp data, adjustment instructions, and strategy-specific analysis steps.
 
 Copy the prompt into an AI assistant for a full deal analysis with math.
-
-## Data Sources
-
-All data comes from Boulder County's public ArcGIS REST services (no API key needed):
-
-| Service | What It Provides |
-|---------|-----------------|
-| ParcelPropertyView | Address, lat/lng, lot size, neighborhood, owner |
-| BLDG_ATTRIBUTES | Beds, baths, finished sqft, year built, design |
-| BLDG_AREA | Per-floor/section area breakdown |
-| SALES | Sale date, price, deed type, reception number |
-| VALUES | Actual and assessed values by year |
-| PARCELS_OWNER | Spatial polygon data for radius searches |
 
 ## Comp-Finding Algorithm
 
@@ -55,12 +49,16 @@ Open http://localhost:5173.
 
 ```
 src/lib/
-├── arcgis.ts           # ArcGIS REST client (POST-based queries)
-├── property-lookup.ts  # Fetches all data for one property (5 parallel calls)
+├── arcgis.ts           # Generic ArcGIS REST query helper (POST-based)
 ├── comp-finder.ts      # Spatial search + scoring + flip detection
 ├── prompt-builder.ts   # Assembles the AI analysis prompt
 ├── types.ts            # TypeScript interfaces
 ├── utils.ts            # Haversine distance, formatting, chunking
+├── counties/
+│   ├── types.ts        # CountyDataSource interface
+│   ├── index.ts        # County registry
+│   ├── boulder.ts      # Boulder County adapter
+│   └── weld.ts         # Weld County adapter
 └── components/
     ├── AddressSearch.svelte   # Debounced autocomplete
     ├── PropertyCard.svelte    # Property detail display
@@ -68,6 +66,13 @@ src/lib/
     ├── CompList.svelte        # Comp cards with stats
     └── PromptOutput.svelte    # Copy/download prompt
 ```
+
+## Adding a New County
+
+1. Create `src/lib/counties/{county}.ts` implementing `CountyDataSource`
+2. Register it in `src/lib/counties/index.ts`
+
+The `CountyDataSource` interface requires: `searchByAddress`, `lookupProperty`, `findNearbyAccountNos`, `getRecentSales`, `getBuildingInfoBatch`, `getParcelInfoBatch`, and `getSalesHistory`.
 
 ## Build & Deploy
 

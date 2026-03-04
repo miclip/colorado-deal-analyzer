@@ -9,7 +9,7 @@ const config = {
 			fallback: 'index.html'
 		}),
 		paths: {
-			base: process.env.NODE_ENV === 'production' ? '/boulder-deal-analyzer' : ''
+			base: process.env.NODE_ENV === 'production' ? '/colorado-deal-analyzer' : ''
 		}
 	}
 };

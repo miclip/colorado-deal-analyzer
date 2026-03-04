@@ -1,13 +1,13 @@
 <script lang="ts">
 	import type { SearchResult } from '$lib/types';
-	import { searchByAddress } from '$lib/arcgis';
-	import { normalizeAddress } from '$lib/utils';
+	import type { CountyDataSource } from '$lib/counties/types';
 
 	interface Props {
+		county: CountyDataSource;
 		onselect: (result: SearchResult) => void;
 	}
 
-	let { onselect }: Props = $props();
+	let { county, onselect }: Props = $props();
 
 	let query = $state('');
 	let results = $state<SearchResult[]>([]);
@@ -25,14 +25,7 @@
 		loading = true;
 		debounceTimer = setTimeout(async () => {
 			try {
-				const term = normalizeAddress(query);
-				const res = await searchByAddress(term);
-				results = res.features.map((f) => ({
-					accountNo: f.attributes.AccountNo,
-					address: f.attributes.PropertyAddress,
-					city: f.attributes.city ?? '',
-					neighborhood: f.attributes.NbhdDscr ?? String(f.attributes.NbhdCode ?? '')
-				}));
+				results = await county.searchByAddress(query);
 				showDropdown = results.length > 0;
 			} catch {
 				results = [];

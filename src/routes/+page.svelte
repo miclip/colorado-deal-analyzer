@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { SearchResult, PropertyData, InvestmentParams, AnalysisResult } from '$lib/types';
-	import { lookupProperty } from '$lib/property-lookup';
+	import type { CountyDataSource } from '$lib/counties/types';
+	import { counties, countyList, getCounty } from '$lib/counties';
 	import { findComps } from '$lib/comp-finder';
 	import { buildPrompt } from '$lib/prompt-builder';
 	import { median } from '$lib/utils';
@@ -9,6 +10,10 @@
 	import InvestmentForm from '$lib/components/InvestmentForm.svelte';
 	import CompList from '$lib/components/CompList.svelte';
 	import PromptOutput from '$lib/components/PromptOutput.svelte';
+
+	// County selection
+	let selectedCountyId = $state('boulder');
+	let county = $derived(getCounty(selectedCountyId));
 
 	// Step state: 1=search, 2=property, 3=params, 4=results
 	let step = $state(1);
@@ -26,7 +31,7 @@
 		step = 2;
 
 		try {
-			property = await lookupProperty(result.accountNo);
+			property = await county.lookupProperty(result.accountNo);
 		} catch (e) {
 			errorMsg = e instanceof Error ? e.message : 'Failed to fetch property data';
 			step = 1;
@@ -46,7 +51,7 @@
 		step = 4;
 
 		try {
-			const comps = await findComps(property, params.compRadius || 0.5);
+			const comps = await findComps(county, property, params.compRadius || 0.5);
 
 			const salesPrices = comps
 				.map((c) => c.sales[0]?.price)
@@ -126,10 +131,26 @@
 {#if step === 1}
 	<div class="space-y-4">
 		<h2 class="text-lg font-semibold text-gray-900">Find a Property</h2>
+		<div class="flex items-end gap-4">
+			<div>
+				<label for="county-select" class="block text-sm font-medium text-gray-700 mb-1">County</label>
+				<select
+					id="county-select"
+					bind:value={selectedCountyId}
+					class="rounded-lg border border-gray-300 px-3 py-3 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+				>
+					{#each countyList as c}
+						<option value={c.id}>{c.name}</option>
+					{/each}
+				</select>
+			</div>
+			<div class="flex-1">
+				<AddressSearch {county} onselect={handleAddressSelect} />
+			</div>
+		</div>
 		<p class="text-sm text-gray-600">
-			Search for a Boulder County property by address. Addresses are stored as uppercase (e.g., "308 PEARL ST").
+			Search for a property by address. Addresses are stored as uppercase (e.g., "308 PEARL ST").
 		</p>
-		<AddressSearch onselect={handleAddressSelect} />
 	</div>
 {/if}
 
