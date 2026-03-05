@@ -1,15 +1,19 @@
 import type { CountyDataSource } from './types';
 import { adams } from './adams';
 import { boulder } from './boulder';
+import { broomfield } from './broomfield';
 import { denver } from './denver';
 import { larimer } from './larimer';
+import { mesa } from './mesa';
 import { weld } from './weld';
 
 export const counties: Record<string, CountyDataSource> = {
 	adams,
 	boulder,
+	broomfield,
 	denver,
 	larimer,
+	mesa,
 	weld
 };
 

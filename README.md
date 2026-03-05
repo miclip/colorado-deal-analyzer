@@ -10,8 +10,10 @@ A single-page app that fetches Colorado county property data from public ArcGIS 
 |--------|-----------|--------|
 | Adams | Adams County ArcGIS Online (Parcels, Property_Improvements, Property_Sales, Property_Values) | Full support |
 | Boulder | Boulder County ArcGIS (ParcelPropertyView, BLDG_ATTRIBUTES, SALES, VALUES, PARCELS_OWNER) | Full support |
+| Broomfield | Broomfield ArcGIS Online (single Parcels layer with all data) | Full support |
 | Denver | Denver ArcGIS Online (PROP_PARCELS_A, residential_characteristics, sales_and_transfers) | Full support |
 | Larimer | Larimer County ArcGIS (Tax Parcels, Site Address, Sales) | Partial — sales + parcels only, no building attributes or values (those require bulk CSV downloads) |
+| Mesa | Mesa County ArcGIS Online (single Tax_Parcels_Hosted layer with all data) | Full support |
 | Weld | Weld County ArcGIS Online (Account_Point, Ownership2, Imps_CurrentInvntry, Sales2, Parcels) | Full support |
 
 ## How It Works
@@ -62,8 +64,10 @@ src/lib/
 │   ├── index.ts        # County registry
 │   ├── adams.ts        # Adams County adapter
 │   ├── boulder.ts      # Boulder County adapter
+│   ├── broomfield.ts   # Broomfield County adapter
 │   ├── denver.ts       # Denver County adapter
 │   ├── larimer.ts      # Larimer County adapter (no building data)
+│   ├── mesa.ts         # Mesa County adapter
 │   └── weld.ts         # Weld County adapter
 └── components/
     ├── AddressSearch.svelte   # Debounced autocomplete
