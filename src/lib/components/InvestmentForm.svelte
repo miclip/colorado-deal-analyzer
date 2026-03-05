@@ -50,12 +50,13 @@
 		<legend class="block text-sm font-medium text-gray-700 mb-2">Investment Strategy</legend>
 		<div class="flex gap-3">
 			{#each [
-				{ value: 'flip', label: 'Flip' },
-				{ value: 'rental', label: 'Rental' },
-				{ value: 'wholesale', label: 'Wholesale' }
+				{ value: 'flip', label: 'Flip', tip: 'Buy, renovate, and resell for profit' },
+				{ value: 'rental', label: 'Rental', tip: 'Buy and hold for monthly cash flow' },
+				{ value: 'wholesale', label: 'Wholesale', tip: 'Contract a property and assign it to an end buyer for a fee' }
 			] as opt}
 				<label
 					class="flex-1 cursor-pointer rounded-lg border-2 px-4 py-3 text-center transition-colors {strategy === opt.value ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:border-gray-300'}"
+					title={opt.tip}
 				>
 					<input
 						type="radio"
@@ -73,15 +74,19 @@
 	<!-- Flip options -->
 	{#if strategy === 'flip'}
 		<fieldset>
-			<legend class="block text-sm font-medium text-gray-700 mb-2">Rehab Quality</legend>
+			<legend class="block text-sm font-medium text-gray-700 mb-2">
+				Rehab Quality
+				<span class="ml-1 font-normal text-gray-400" title="Estimated renovation cost per square foot based on scope of work">&#9432;</span>
+			</legend>
 			<div class="flex gap-3">
 				{#each [
-					{ value: 'light', label: 'Light', desc: '$15-25/sqft' },
-					{ value: 'standard', label: 'Standard', desc: '$30-50/sqft' },
-					{ value: 'high-end', label: 'High-End', desc: '$60-100/sqft' }
+					{ value: 'light', label: 'Light', desc: '$15-25/sqft', tip: 'Cosmetic only — paint, flooring, fixtures, landscaping' },
+					{ value: 'standard', label: 'Standard', desc: '$30-50/sqft', tip: 'Kitchen/bath remodel, some systems updates, new appliances' },
+					{ value: 'high-end', label: 'High-End', desc: '$60-100/sqft', tip: 'Full gut renovation with high-end finishes, new systems throughout' }
 				] as opt}
 					<label
 						class="flex-1 cursor-pointer rounded-lg border-2 px-3 py-2 text-center transition-colors {rehabQuality === opt.value ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}"
+						title={opt.tip}
 					>
 						<input
 							type="radio"
@@ -104,6 +109,7 @@
 			<div>
 				<label for="monthlyRent" class="block text-sm font-medium text-gray-700 mb-1">
 					Expected Monthly Rent
+					<span class="ml-1 font-normal text-gray-400" title="Your target monthly rental income. Check Zillow/Rentometer for local comps.">&#9432;</span>
 				</label>
 				<input
 					id="monthlyRent"
@@ -116,6 +122,7 @@
 			<div>
 				<label for="downPayment" class="block text-sm font-medium text-gray-700 mb-1">
 					Down Payment %
+					<span class="ml-1 font-normal text-gray-400" title="Percentage of purchase price paid upfront. Investment properties typically require 20-25% down. Affects monthly mortgage payment and cash-on-cash return.">&#9432;</span>
 				</label>
 				<input
 					id="downPayment"
@@ -129,6 +136,7 @@
 			<div>
 				<label for="interestRate" class="block text-sm font-medium text-gray-700 mb-1">
 					Interest Rate %
+					<span class="ml-1 font-normal text-gray-400" title="Annual mortgage interest rate. Investment property rates are typically 0.5-0.75% higher than primary residence rates.">&#9432;</span>
 				</label>
 				<input
 					id="interestRate"
@@ -141,13 +149,14 @@
 				/>
 			</div>
 			<div class="flex items-center pt-6">
-				<label class="flex cursor-pointer items-center gap-2">
+				<label class="flex cursor-pointer items-center gap-2" title="Hire a property manager to handle tenants, maintenance, and rent collection. Typically costs 8-10% of monthly rent.">
 					<input
 						type="checkbox"
 						bind:checked={propertyMgmt}
 						class="h-4 w-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500"
 					/>
 					<span class="text-sm text-gray-700">Property Management (8-10%)</span>
+					<span class="font-normal text-gray-400">&#9432;</span>
 				</label>
 			</div>
 		</div>
@@ -158,6 +167,7 @@
 		<div>
 			<label for="assignmentFee" class="block text-sm font-medium text-gray-700 mb-1">
 				Target Assignment Fee
+				<span class="ml-1 font-normal text-gray-400" title="The fee you earn for assigning the purchase contract to an end buyer. Typical range: $5,000-$20,000+ depending on the deal size.">&#9432;</span>
 			</label>
 			<input
 				id="assignmentFee"
@@ -173,6 +183,7 @@
 	<div>
 		<label for="compRadius" class="block text-sm font-medium text-gray-700 mb-1">
 			Comp Search Radius
+			<span class="ml-1 font-normal text-gray-400" title="How far from the subject property to search for comparable sales. Smaller radius = more relevant comps but fewer results. Start with 0.5mi, widen if too few comps found.">&#9432;</span>
 		</label>
 		<select
 			id="compRadius"
@@ -190,6 +201,7 @@
 	<div>
 		<label for="context" class="block text-sm font-medium text-gray-700 mb-1">
 			Additional Context (optional)
+			<span class="ml-1 font-normal text-gray-400" title="Anything else the AI should know — property condition, planned renovations, neighborhood trends, your experience level, etc.">&#9432;</span>
 		</label>
 		<textarea
 			id="context"
