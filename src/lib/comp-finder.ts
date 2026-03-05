@@ -94,7 +94,11 @@ export async function findComps(
 	await Promise.all(
 		topComps.map(async (comp) => {
 			try {
-				comp.sales = await county.getSalesHistory(comp.accountNo);
+				const history = await county.getSalesHistory(comp.accountNo);
+				if (history.length > 0) {
+					comp.sales = history;
+				}
+				// If empty, keep the single sale from getRecentSales
 			} catch {
 				// Keep the single sale we already have
 			}
