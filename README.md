@@ -9,12 +9,37 @@ A single-page app that fetches Colorado county property data from public ArcGIS 
 | County | Data Source | Status |
 |--------|-----------|--------|
 | Adams | Adams County ArcGIS Online (Parcels, Property_Improvements, Property_Sales, Property_Values) | Full support |
+| Arapahoe | Arapahoe County ArcGIS (CustomCAMA_WM MapServer + GeocodeServer) | Partial — no beds/baths data |
 | Boulder | Boulder County ArcGIS (ParcelPropertyView, BLDG_ATTRIBUTES, SALES, VALUES, PARCELS_OWNER) | Full support |
 | Broomfield | Broomfield ArcGIS Online (single Parcels layer with all data) | Full support |
 | Denver | Denver ArcGIS Online (PROP_PARCELS_A, residential_characteristics, sales_and_transfers) | Full support |
-| Larimer | Larimer County ArcGIS (Tax Parcels, Site Address, Sales) | Partial — sales + parcels only, no building attributes or values (those require bulk CSV downloads) |
+| Larimer | Larimer County ArcGIS (Tax Parcels, Site Address, Sales) | Partial — no building attributes or values |
 | Mesa | Mesa County ArcGIS Online (single Tax_Parcels_Hosted layer with all data) | Full support |
 | Weld | Weld County ArcGIS Online (Account_Point, Ownership2, Imps_CurrentInvntry, Sales2, Parcels) | Full support |
+
+### County Capabilities
+
+| County | Address Search | Beds/Baths | Sqft/Year | Sales History | Values | Lot Size |
+|--------|---------------|------------|-----------|---------------|--------|----------|
+| Adams | SQL LIKE on parcels | Yes | Yes | Full chain | Yes | Yes |
+| Arapahoe | Geocoder (suggest + resolve) | No | Yes | Most recent only | Yes (market + land) | No |
+| Boulder | SQL LIKE on parcels | Yes (full/half/3/4) | Yes | Full chain | Yes | Yes |
+| Broomfield | SQL LIKE on parcels | Yes | Yes | Most recent only | Yes | Yes |
+| Denver | SQL LIKE on parcels | Yes | Yes | Partial (fallback to parcels) | No | Yes |
+| Larimer | SQL LIKE on parcels | No | No | Full chain | No | No |
+| Mesa | SQL LIKE on parcels | Yes | Yes | Most recent only | Yes | Yes |
+| Weld | SQL LIKE on parcels | Yes | Yes | Full chain | Yes | Yes |
+
+### Why Some Counties Are Missing
+
+Several large Colorado counties are not supported due to data access limitations:
+
+- **El Paso** (Colorado Springs) — No public ArcGIS REST API for assessor data. Property data requires their PropertyMax portal which uses authentication.
+- **Jefferson** (Lakewood/Golden) — Assessor data is behind an authenticated portal. ArcGIS services exist for parcels but lack building attributes and sales.
+- **Douglas** (Castle Rock) — No public ArcGIS REST service for assessor/property data. Data is only available through their county website with CAPTCHA.
+- **Pueblo** — Has ArcGIS services but the parcel layers lack building attributes and sales data needed for comp analysis.
+
+All supported counties use publicly accessible ArcGIS REST APIs with CORS support, enabling browser-side queries without a proxy server.
 
 ## How It Works
 
@@ -63,6 +88,7 @@ src/lib/
 │   ├── types.ts        # CountyDataSource interface
 │   ├── index.ts        # County registry
 │   ├── adams.ts        # Adams County adapter
+│   ├── arapahoe.ts     # Arapahoe County adapter (no beds/baths)
 │   ├── boulder.ts      # Boulder County adapter
 │   ├── broomfield.ts   # Broomfield County adapter
 │   ├── denver.ts       # Denver County adapter

@@ -32,6 +32,13 @@
 
 		try {
 			property = await county.lookupProperty(result.accountNo);
+			// Some counties (e.g. Arapahoe) don't have address on the parcel layer
+			if (!property.address && result.address) {
+				property.address = result.address;
+			}
+			if (!property.city && result.city) {
+				property.city = result.city;
+			}
 		} catch (e) {
 			errorMsg = e instanceof Error ? e.message : 'Failed to fetch property data';
 			step = 1;
