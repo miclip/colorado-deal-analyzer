@@ -127,7 +127,7 @@ export interface SearchResult {
 	neighborhood: string;
 }
 
-export type InvestmentStrategy = 'flip' | 'rental' | 'wholesale';
+export type InvestmentStrategy = 'flip' | 'rental' | 'wholesale' | 'retail';
 
 export interface InvestmentParams {
 	strategy: InvestmentStrategy;
@@ -137,6 +137,7 @@ export interface InvestmentParams {
 	interestRate?: number;
 	propertyMgmt?: boolean;
 	assignmentFee?: number;
+	listPrice?: number;
 	additionalContext?: string;
 	compRadius: number; // miles
 }

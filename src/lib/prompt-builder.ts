@@ -18,9 +18,15 @@ export function buildPrompt(
 	const sections: string[] = [];
 
 	// System instruction
-	sections.push(`You are an expert real estate investment analyst specializing in the ${countyName}, Colorado market. You have deep knowledge of local neighborhoods, property values, renovation costs, and market trends.
+	const roleDesc = params.strategy === 'retail'
+		? `You are an expert real estate agent and market analyst specializing in the ${countyName}, Colorado market. You have deep knowledge of local neighborhoods, property values, pricing strategy, and market conditions.
 
-Analyze the following property deal using the comparable sales data provided. Show all math. Do not invent data — only use what's provided. If data is insufficient, say so.`);
+Analyze the following property for a homeowner looking to sell. Use the comparable sales data to validate pricing and set realistic expectations. Show all math. Do not invent data — only use what's provided. If data is insufficient, say so.`
+		: `You are an expert real estate investment analyst specializing in the ${countyName}, Colorado market. You have deep knowledge of local neighborhoods, property values, renovation costs, and market trends.
+
+Analyze the following property deal using the comparable sales data provided. Show all math. Do not invent data — only use what's provided. If data is insufficient, say so.`;
+
+	sections.push(roleDesc);
 
 	// Investment parameters
 	sections.push(buildInvestmentSection(params));
@@ -55,6 +61,8 @@ function buildInvestmentSection(params: InvestmentParams): string {
 		lines.push(`- **Property Management:** ${params.propertyMgmt ? 'Yes (budget 8-10%)' : 'Self-managed'}`);
 	} else if (params.strategy === 'wholesale') {
 		if (params.assignmentFee) lines.push(`- **Target Assignment Fee:** ${formatCurrency(params.assignmentFee)}`);
+	} else if (params.strategy === 'retail') {
+		if (params.listPrice) lines.push(`- **Planned List Price:** ${formatCurrency(params.listPrice)}`);
 	}
 
 	if (params.additionalContext) {
@@ -179,15 +187,50 @@ function buildAnalysisInstructions(params: InvestmentParams): string {
 			`- Your contract price = MAO - assignment fee${params.assignmentFee ? ` (target: ${formatCurrency(params.assignmentFee)})` : ''}`,
 			``
 		);
+	} else if (params.strategy === 'retail') {
+		steps.push(
+			`### 4. Market Value Estimate`,
+			`Using the adjusted comp values, determine a fair market value range for this property:`,
+			`- **Low estimate** (conservative — priced to sell quickly)`,
+			`- **Mid estimate** (most likely market value)`,
+			`- **High estimate** (aspirational — may require longer days on market)`,
+			params.listPrice
+				? `\nThe seller is considering listing at **${formatCurrency(params.listPrice)}**. Evaluate whether this is supported by the comps.`
+				: '',
+			``,
+			`### 5. Market Conditions & Expectations`,
+			`- How are comps trending? Are recent sales higher or lower than older ones?`,
+			`- Average days on market for this area and price range (if inferable from comp dates)`,
+			`- Are there any flip comps that suggest investor activity (which can signal a hot market)?`,
+			`- Is the subject's assessed value aligned with market comps, or lagging/leading?`,
+			``,
+			`### 6. Pricing Strategy`,
+			`- Recommended list price with rationale`,
+			`- Expected net proceeds after selling costs (6% agent commissions + ~1.5% closing costs + any transfer taxes)`,
+			`- Price positioning: slightly below, at, or above market — and why`,
+			`- What improvements (if any) would meaningfully increase the sale price vs. their cost`,
+			``
+		);
 	}
 
-	steps.push(
-		`### ${params.strategy === 'flip' ? '6' : '5'}. Final Recommendation`,
-		`- Summarize: is this a good deal at the likely asking price?`,
-		`- Key risks and considerations`,
-		`- Suggested offer range with rationale`,
-		`- Confidence level (High/Medium/Low) and what additional info would increase confidence`
-	);
+	if (params.strategy === 'retail') {
+		steps.push(
+			`### 7. Final Summary`,
+			`- Recommended list price range`,
+			`- Estimated net proceeds at each price point`,
+			`- Expected timeline to sell`,
+			`- Top 3 risks or concerns a buyer might raise`,
+			`- Confidence level (High/Medium/Low) and what additional info would help`
+		);
+	} else {
+		steps.push(
+			`### ${params.strategy === 'flip' ? '6' : '5'}. Final Recommendation`,
+			`- Summarize: is this a good deal at the likely asking price?`,
+			`- Key risks and considerations`,
+			`- Suggested offer range with rationale`,
+			`- Confidence level (High/Medium/Low) and what additional info would increase confidence`
+		);
+	}
 
 	return steps.join('\n');
 }

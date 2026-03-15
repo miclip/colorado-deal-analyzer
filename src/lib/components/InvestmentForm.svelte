@@ -15,6 +15,7 @@
 	let interestRate = $state(7.0);
 	let propertyMgmt = $state(false);
 	let assignmentFee = $state(10000);
+	let listPrice = $state<number | undefined>(undefined);
 	let additionalContext = $state('');
 	let compRadius = $state(0.5);
 
@@ -34,6 +35,8 @@
 			params.propertyMgmt = propertyMgmt;
 		} else if (strategy === 'wholesale') {
 			params.assignmentFee = assignmentFee;
+		} else if (strategy === 'retail') {
+			params.listPrice = listPrice;
 		}
 
 		if (additionalContext.trim()) {
@@ -50,6 +53,7 @@
 		<legend class="block text-sm font-medium text-gray-700 mb-2">Investment Strategy</legend>
 		<div class="flex gap-3">
 			{#each [
+				{ value: 'retail', label: 'Retail Sale', tip: 'Selling your home — validate list price and understand market conditions' },
 				{ value: 'flip', label: 'Flip', tip: 'Buy, renovate, and resell for profit' },
 				{ value: 'rental', label: 'Rental', tip: 'Buy and hold for monthly cash flow' },
 				{ value: 'wholesale', label: 'Wholesale', tip: 'Contract a property and assign it to an end buyer for a fee' }
@@ -174,6 +178,23 @@
 				type="number"
 				bind:value={assignmentFee}
 				step="1000"
+				class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:w-1/2"
+			/>
+		</div>
+	{/if}
+
+	<!-- Retail options -->
+	{#if strategy === 'retail'}
+		<div>
+			<label for="listPrice" class="block text-sm font-medium text-gray-700 mb-1">
+				Planned List Price (optional)
+				<span class="ml-1 font-normal text-gray-400" title="The price you're considering listing at. Leave blank to get a recommended range from comps.">&#9432;</span>
+			</label>
+			<input
+				id="listPrice"
+				type="number"
+				bind:value={listPrice}
+				placeholder="e.g. 550000"
 				class="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none sm:w-1/2"
 			/>
 		</div>
