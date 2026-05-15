@@ -47,6 +47,10 @@ export async function findComps(
 		const parcel = parcelByAccount.get(accountNo);
 		if (!parcel) continue;
 
+		// Skip raw-land / vacant comps when the subject has a building. These sales
+		// (e.g. 35-acre land parcels) don't inform ARV for a residential flip.
+		if (subjectBldg && (!bldg || bldg.sqft === 0)) continue;
+
 		const dist = haversineDistance(subject.lat, subject.lng, parcel.lat, parcel.lng);
 
 		// Score components are each ~[0,1]; lower is better.
@@ -65,10 +69,11 @@ export async function findComps(
 					: 0;
 		}
 
-		// Lot score only when both have lot data (denominator floored to 0.25 acre to avoid
-		// inflating differences on tiny urban lots).
+		// Lot score. When subject has acreage but comp has zero/missing lot data, treat as
+		// max difference — a comp with no land allocation (typically condos/townhomes that
+		// share common land) is fundamentally a different property type than a rural SFR.
 		let lotScore = 0;
-		if (subjectLot > 0 && parcel.lotAcres > 0) {
+		if (subjectLot > 0) {
 			lotScore = Math.min(
 				Math.abs(parcel.lotAcres - subjectLot) / Math.max(subjectLot, 0.25),
 				1
