@@ -212,24 +212,47 @@ export const weld: CountyDataSource = {
 
 	async getParcelInfoBatch(accountNos) {
 		const batches = chunk(accountNos, 100);
-		const results = await Promise.all(
-			batches.map((batch) => {
-				const inClause = batch.map((a) => `'${a}'`).join(',');
-				return q(SVC.parcels, {
-					where: `ACCOUNTNO IN (${inClause})`,
-					outFields: 'ACCOUNTNO,SITUS,LOCCITY,latitude,longitude'
-				});
-			})
-		);
+		const [parcelResults, acctResults] = await Promise.all([
+			Promise.all(
+				batches.map((batch) => {
+					const inClause = batch.map((a) => `'${a}'`).join(',');
+					return q(SVC.parcels, {
+						where: `ACCOUNTNO IN (${inClause})`,
+						outFields: 'ACCOUNTNO,SITUS,LOCCITY,latitude,longitude'
+					});
+				})
+			),
+			Promise.all(
+				batches.map((batch) => {
+					const inClause = batch.map((a) => `'${a}'`).join(',');
+					return q(SVC.accountPoint, {
+						where: `ACCOUNTNO IN (${inClause})`,
+						outFields: 'ACCOUNTNO,LANDNETACRECOUNT',
+						returnGeometry: 'false'
+					});
+				})
+			)
+		]);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
-		for (const res of results) {
+		const acresByAccount = new Map<string, number>();
+		for (const res of acctResults) {
+			for (const f of res.features) {
+				acresByAccount.set(f.attributes.ACCOUNTNO, f.attributes.LANDNETACRECOUNT ?? 0);
+			}
+		}
+
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
+		for (const res of parcelResults) {
 			for (const f of res.features) {
 				map.set(f.attributes.ACCOUNTNO, {
 					address: f.attributes.SITUS ?? '',
 					city: f.attributes.LOCCITY ?? '',
 					lat: f.attributes.latitude ?? 0,
-					lng: f.attributes.longitude ?? 0
+					lng: f.attributes.longitude ?? 0,
+					lotAcres: acresByAccount.get(f.attributes.ACCOUNTNO) ?? 0
 				});
 			}
 		}

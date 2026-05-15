@@ -160,7 +160,10 @@ export const larimer: CountyDataSource = {
 			})
 		);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
 		for (const res of results) {
 			for (const f of res.features) {
 				let lat = 0,
@@ -174,7 +177,8 @@ export const larimer: CountyDataSource = {
 					address: f.attributes.LOCADDRESS ?? '',
 					city: f.attributes.LOCCITY ?? '',
 					lat,
-					lng
+					lng,
+					lotAcres: 0
 				});
 			}
 		}

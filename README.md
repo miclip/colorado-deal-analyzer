@@ -2,7 +2,7 @@
 
 A single-page app that fetches Colorado county property data from public ArcGIS APIs, finds comparable sales, and generates a complete AI analysis prompt you can paste into Claude or ChatGPT.
 
-**Live:** https://miclip.github.io/colorado-deal-analyzer/
+**Live:** https://coloradodeals.miclip.io
 
 ## Supported Counties
 
@@ -45,7 +45,7 @@ All supported counties use publicly accessible ArcGIS REST APIs with CORS suppor
 
 1. **Search** — Select a county and type a property address. Autocomplete queries the county's parcel data.
 2. **Review** — See building details, area breakdown, assessed values, and full sale history pulled from multiple APIs in parallel.
-3. **Configure** — Pick an investment strategy (Flip / Rental / Wholesale) and set parameters like rehab quality, rent targets, or assignment fees.
+3. **Configure** — Pick an investment strategy (Retail Sale / Flip / Rental / Wholesale) and set parameters like rehab quality, rent targets, list price, or assignment fees.
 4. **Generate** — The app finds comparable sales within your chosen radius, scores them by similarity, and builds a detailed analysis prompt with subject data, comp data, adjustment instructions, and strategy-specific analysis steps.
 
 Copy the prompt into an AI assistant for a full deal analysis with math.
@@ -55,16 +55,19 @@ Copy the prompt into an AI assistant for a full deal analysis with math.
 1. Spatial query finds parcels within the user's radius
 2. Batch-queries recent sales (18 months, > $50k) for those parcels
 3. Filters out quit claim deeds with $0 price
-4. Fetches building attributes for candidates
-5. Scores by similarity: sqft (30%), beds (20%), year built (15%), distance (35%)
-6. Returns top 6, then fetches full sale chains for flip detection
+4. Fetches building attributes + lot acreage for candidates
+5. Scores by similarity. Weights shift based on subject lot size:
+   - Urban (lot < 0.5 ac): sqft 30%, beds 15%, year 10%, lot 15%, distance 30%
+   - Rural (lot ≥ 0.5 ac): sqft 20%, beds 10%, year 10%, lot 30%, distance 30%
+6. Returns top 6, then fetches full sale chains (for flip detection) and outbuilding areas (Boulder only)
+7. Filters $0 / non-market transfers (estate, survivorship, correction deeds) out of comp sales history
 
 ## Tech Stack
 
 - SvelteKit (Svelte 5) with TypeScript
 - Tailwind CSS v4
 - Static SPA (adapter-static) — all API calls run in the browser
-- GitHub Pages via Actions
+- Hosted on Vercel
 
 ## Development
 
@@ -108,11 +111,11 @@ src/lib/
 1. Create `src/lib/counties/{county}.ts` implementing `CountyDataSource`
 2. Register it in `src/lib/counties/index.ts`
 
-The `CountyDataSource` interface requires: `searchByAddress`, `lookupProperty`, `findNearbyAccountNos`, `getRecentSales`, `getBuildingInfoBatch`, `getParcelInfoBatch`, and `getSalesHistory`.
+The `CountyDataSource` interface requires: `searchByAddress`, `lookupProperty`, `findNearbyAccountNos`, `getRecentSales`, `getBuildingInfoBatch`, `getParcelInfoBatch` (returns lot acreage when available), and `getSalesHistory`. Optionally implement `getBuildingAreasBatch` if the county exposes outbuilding/area breakdowns.
 
 ## Build & Deploy
 
-Pushes to `main` auto-deploy via GitHub Actions.
+Pushes to `main` auto-deploy via Vercel.
 
 ```sh
 npm run build    # outputs to build/

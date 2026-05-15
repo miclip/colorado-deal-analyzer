@@ -147,7 +147,9 @@ export interface CompProperty {
 	address: string;
 	city: string;
 	distance: number; // miles
+	lotAcres: number;
 	building: BuildingInfo | null;
+	areas: AreaInfo[];
 	sales: SaleRecord[];
 	score: number;
 }

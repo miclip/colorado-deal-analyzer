@@ -4,9 +4,10 @@
 	interface Props {
 		onsubmit: (params: InvestmentParams) => void;
 		loading?: boolean;
+		defaultRadius?: number;
 	}
 
-	let { onsubmit, loading = false }: Props = $props();
+	let { onsubmit, loading = false, defaultRadius = 0.5 }: Props = $props();
 
 	let strategy = $state<InvestmentStrategy>('flip');
 	let rehabQuality = $state<'light' | 'standard' | 'high-end'>('standard');
@@ -17,7 +18,7 @@
 	let assignmentFee = $state(10000);
 	let listPrice = $state<number | undefined>(undefined);
 	let additionalContext = $state('');
-	let compRadius = $state(0.5);
+	let compRadius = $state(defaultRadius);
 
 	function handleSubmit(e: Event) {
 		e.preventDefault();

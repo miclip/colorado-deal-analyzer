@@ -284,14 +284,18 @@ export const arapahoe: CountyDataSource = {
 			})
 		);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
 		for (const res of results) {
 			for (const f of res.features) {
 				map.set(f.attributes.PARCEL_ID, {
 					address: '',
 					city: '',
 					lat: f.attributes.INSIDE_Y ?? 0,
-					lng: f.attributes.INSIDE_X ?? 0
+					lng: f.attributes.INSIDE_X ?? 0,
+					lotAcres: 0
 				});
 			}
 		}

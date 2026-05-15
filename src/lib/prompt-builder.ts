@@ -245,6 +245,14 @@ function buildCompsSection(comps: CompProperty[], subject: PropertyData): string
 		lines.push(`- **Account:** ${comp.accountNo}`);
 		lines.push(`- **Distance:** ${comp.distance} mi from subject`);
 
+		if (comp.lotAcres > 0) {
+			const lotDelta =
+				subject.lotAcres > 0
+					? ` (${comp.lotAcres > subject.lotAcres ? '+' : ''}${(comp.lotAcres - subject.lotAcres).toFixed(2)} vs subject)`
+					: '';
+			lines.push(`- **Lot:** ${comp.lotAcres.toFixed(2)} acres${lotDelta}`);
+		}
+
 		if (comp.building) {
 			const b = comp.building;
 			const bathStr = formatBaths(b);
@@ -262,6 +270,13 @@ function buildCompsSection(comps: CompProperty[], subject: PropertyData): string
 			}
 		}
 
+		if (comp.areas.length > 0) {
+			lines.push(`\n  **Area Breakdown:**`);
+			for (const area of comp.areas) {
+				lines.push(`  - ${area.description}: ${formatNumber(area.sqft)} sqft`);
+			}
+		}
+
 		if (comp.sales.length > 0) {
 			lines.push(`\n  **Sale History:**`);
 			for (const sale of comp.sales) {
@@ -269,8 +284,9 @@ function buildCompsSection(comps: CompProperty[], subject: PropertyData): string
 					`  - ${sale.date}: ${formatCurrency(sale.price)} (${sale.deedType})`
 				);
 			}
-			// Flag potential flips
-			if (comp.sales.length >= 2) {
+			// Flag potential flips. Require prior price >= $50k to avoid false positives on
+			// $0 estate/survivorship/correction transfers.
+			if (comp.sales.length >= 2 && comp.sales[1].price >= 50000) {
 				const recent = new Date(comp.sales[0].date);
 				const prior = new Date(comp.sales[1].date);
 				const monthsBetween =

@@ -232,19 +232,43 @@ export const adams: CountyDataSource = {
 
 	async getParcelInfoBatch(accountNos) {
 		const batches = chunk(accountNos, 100);
-		const results = await Promise.all(
-			batches.map((batch) => {
-				const inClause = batch.map((a) => `'${a}'`).join(',');
-				return q(SVC.parcels, {
-					where: `PARCELNB IN (${inClause})`,
-					outFields: 'PARCELNB,concataddr1,loccity',
-					outSR: '4326'
-				});
-			})
-		);
+		const [parcelResults, valueResults] = await Promise.all([
+			Promise.all(
+				batches.map((batch) => {
+					const inClause = batch.map((a) => `'${a}'`).join(',');
+					return q(SVC.parcels, {
+						where: `PARCELNB IN (${inClause})`,
+						outFields: 'PARCELNB,concataddr1,loccity',
+						outSR: '4326'
+					});
+				})
+			),
+			Promise.all(
+				batches.map((batch) => {
+					const inClause = batch.map((a) => `'${a}'`).join(',');
+					return q(SVC.values, {
+						where: `parcelnb IN (${inClause})`,
+						outFields: 'parcelnb,lotsize,lotmeasure',
+						returnGeometry: 'false'
+					});
+				})
+			)
+		]);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
-		for (const res of results) {
+		const acresByAccount = new Map<string, number>();
+		for (const res of valueResults) {
+			for (const f of res.features) {
+				if (f.attributes.lotmeasure === 'Acres') {
+					acresByAccount.set(f.attributes.parcelnb, f.attributes.lotsize ?? 0);
+				}
+			}
+		}
+
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
+		for (const res of parcelResults) {
 			for (const f of res.features) {
 				let lat = 0,
 					lng = 0;
@@ -257,7 +281,8 @@ export const adams: CountyDataSource = {
 					address: (f.attributes.concataddr1 ?? '').trim(),
 					city: (f.attributes.loccity ?? '').trim(),
 					lat,
-					lng
+					lng,
+					lotAcres: acresByAccount.get(f.attributes.PARCELNB) ?? 0
 				});
 			}
 		}

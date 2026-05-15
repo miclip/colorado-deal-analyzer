@@ -1,4 +1,4 @@
-import type { PropertyData, BuildingInfo, SaleRecord, SearchResult } from '$lib/types';
+import type { PropertyData, BuildingInfo, AreaInfo, SaleRecord, SearchResult } from '$lib/types';
 
 /**
  * Each county implements this interface to normalize its ArcGIS data
@@ -30,10 +30,16 @@ export interface CountyDataSource {
 	/** Get building info for a batch of accounts. */
 	getBuildingInfoBatch(accountNos: string[]): Promise<Map<string, BuildingInfo>>;
 
-	/** Get address + lat/lng for a batch of accounts. */
+	/** Get address + lat/lng + lot acreage for a batch of accounts. `lotAcres` is 0 when unavailable. */
 	getParcelInfoBatch(
 		accountNos: string[]
-	): Promise<Map<string, { address: string; city: string; lat: number; lng: number }>>;
+	): Promise<Map<string, { address: string; city: string; lat: number; lng: number; lotAcres: number }>>;
+
+	/**
+	 * Optional: get outbuilding/area breakdowns for a batch of accounts.
+	 * Only implemented by counties that expose this data (e.g. Boulder's BLDG_AREA service).
+	 */
+	getBuildingAreasBatch?(accountNos: string[]): Promise<Map<string, AreaInfo[]>>;
 
 	/** Get full sales history for a single account (for flip detection). */
 	getSalesHistory(accountNo: string): Promise<SaleRecord[]>;

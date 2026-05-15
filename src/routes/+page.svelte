@@ -51,6 +51,12 @@
 		step = 3;
 	}
 
+	function defaultRadiusFor(p: PropertyData): number {
+		if (p.lotAcres >= 5) return 2;
+		if (p.lotAcres >= 1) return 1;
+		return 0.5;
+	}
+
 	async function handleAnalyze(params: InvestmentParams) {
 		if (!property) return;
 		loadingAnalysis = true;
@@ -58,7 +64,7 @@
 		step = 4;
 
 		try {
-			const comps = await findComps(county, property, params.compRadius || 0.5);
+			const comps = await findComps(county, property, params.compRadius);
 
 			const salesPrices = comps
 				.map((c) => c.sales[0]?.price)
@@ -209,8 +215,18 @@
 			<p class="text-sm text-gray-600">
 				Analyzing <strong>{property.address}</strong> — configure your investment strategy below.
 			</p>
+			{#if property.lotAcres >= 1}
+				<p class="text-sm text-amber-700">
+					Rural property detected ({property.lotAcres.toFixed(2)} acres). Default comp radius
+					increased — wider search captures more acreage comps.
+				</p>
+			{/if}
 		{/if}
-		<InvestmentForm onsubmit={handleAnalyze} loading={loadingAnalysis} />
+		<InvestmentForm
+			onsubmit={handleAnalyze}
+			loading={loadingAnalysis}
+			defaultRadius={property ? defaultRadiusFor(property) : 0.5}
+		/>
 	</div>
 {/if}
 
@@ -247,6 +263,12 @@
 			<!-- Comp Cards -->
 			<div>
 				<h3 class="mb-3 font-semibold text-gray-900">Comparable Sales</h3>
+				{#if analysis.compStats.count < 4}
+					<div class="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+						<strong>Only {analysis.compStats.count} comp{analysis.compStats.count === 1 ? '' : 's'} found</strong>
+						— confidence will be low. Try increasing the comp radius and re-running.
+					</div>
+				{/if}
 				<CompList comps={analysis.comps} compStats={analysis.compStats} />
 			</div>
 

@@ -65,9 +65,20 @@
 							</span>
 						{/if}
 					{/if}
+					{#if comp.lotAcres > 0}
+						<span class="text-gray-500">{comp.lotAcres.toFixed(2)} ac</span>
+					{/if}
 				</div>
 
-				{#if comp.sales.length >= 2}
+				{#if comp.areas.length > 0}
+					<div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+						{#each comp.areas as area}
+							<span>{area.description}: {formatNumber(area.sqft)} sqft</span>
+						{/each}
+					</div>
+				{/if}
+
+				{#if comp.sales.length >= 2 && comp.sales[1].price >= 50000}
 					{@const recent = new Date(comp.sales[0].date)}
 					{@const prior = new Date(comp.sales[1].date)}
 					{@const monthsBetween = (recent.getTime() - prior.getTime()) / (1000 * 60 * 60 * 24 * 30)}

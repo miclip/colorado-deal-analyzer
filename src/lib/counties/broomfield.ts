@@ -210,13 +210,16 @@ export const broomfield: CountyDataSource = {
 				const inClause = batch.map((a) => `'${a}'`).join(',');
 				return q({
 					where: `ACCOUNTNUMBER IN (${inClause})`,
-					outFields: 'ACCOUNTNUMBER,SITUS_FULL_ADDRESS',
+					outFields: 'ACCOUNTNUMBER,SITUS_FULL_ADDRESS,GIS_ACRES',
 					outSR: '4326'
 				});
 			})
 		);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
 		for (const res of results) {
 			for (const f of res.features) {
 				let lat = 0,
@@ -230,7 +233,8 @@ export const broomfield: CountyDataSource = {
 					address: f.attributes.SITUS_FULL_ADDRESS ?? '',
 					city: 'BROOMFIELD',
 					lat,
-					lng
+					lng,
+					lotAcres: f.attributes.GIS_ACRES ?? 0
 				});
 			}
 		}

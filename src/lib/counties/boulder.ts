@@ -186,20 +186,48 @@ export const boulder: CountyDataSource = {
 				const inClause = batch.map((a) => `'${a}'`).join(',');
 				return q(SVC.parcel, {
 					where: `AccountNo IN (${inClause})`,
-					outFields: 'AccountNo,PropertyAddress,city,Latitude,Longitude'
+					outFields: 'AccountNo,PropertyAddress,city,Latitude,Longitude,EstLandAcres'
 				});
 			})
 		);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
 		for (const res of results) {
 			for (const f of res.features) {
 				map.set(f.attributes.AccountNo, {
 					address: f.attributes.PropertyAddress ?? '',
 					city: f.attributes.city ?? '',
 					lat: parseFloat(f.attributes.Latitude) || 0,
-					lng: parseFloat(f.attributes.Longitude) || 0
+					lng: parseFloat(f.attributes.Longitude) || 0,
+					lotAcres: f.attributes.EstLandAcres ?? 0
 				});
+			}
+		}
+		return map;
+	},
+
+	async getBuildingAreasBatch(accountNos) {
+		const batches = chunk(accountNos, 100);
+		const results = await Promise.all(
+			batches.map((batch) => {
+				const inClause = batch.map((a) => `'${a}'`).join(',');
+				return q(SVC.area, {
+					where: `AccountNo IN (${inClause})`,
+					outFields: 'AccountNo,AreaDscr,AreaSqft'
+				});
+			})
+		);
+
+		const map = new Map<string, { description: string; sqft: number }[]>();
+		for (const res of results) {
+			for (const f of res.features) {
+				const a = f.attributes;
+				const list = map.get(a.AccountNo) ?? [];
+				list.push({ description: a.AreaDscr ?? '', sqft: a.AreaSqft ?? 0 });
+				map.set(a.AccountNo, list);
 			}
 		}
 		return map;

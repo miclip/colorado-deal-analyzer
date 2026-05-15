@@ -253,13 +253,16 @@ export const denver: CountyDataSource = {
 				const inClause = batch.map((a) => `'${a}'`).join(',');
 				return q(SVC.parcels, {
 					where: `SCHEDNUM IN (${inClause})`,
-					outFields: 'SCHEDNUM,SITUS_ADDRESS_LINE1,SITUS_CITY',
+					outFields: 'SCHEDNUM,SITUS_ADDRESS_LINE1,SITUS_CITY,LAND_AREA',
 					outSR: '4326'
 				});
 			})
 		);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
 		for (const res of results) {
 			for (const f of res.features) {
 				let lat = 0,
@@ -273,7 +276,8 @@ export const denver: CountyDataSource = {
 					address: f.attributes.SITUS_ADDRESS_LINE1 ?? '',
 					city: f.attributes.SITUS_CITY ?? '',
 					lat,
-					lng
+					lng,
+					lotAcres: f.attributes.LAND_AREA ? f.attributes.LAND_AREA / 43560 : 0
 				});
 			}
 		}

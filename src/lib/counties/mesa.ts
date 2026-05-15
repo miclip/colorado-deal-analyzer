@@ -202,13 +202,16 @@ export const mesa: CountyDataSource = {
 				const inClause = batch.map((a) => `'${a}'`).join(',');
 				return q({
 					where: `ACCOUNTNO IN (${inClause})`,
-					outFields: 'ACCOUNTNO,LOCATION',
+					outFields: 'ACCOUNTNO,LOCATION,Acres',
 					outSR: '4326'
 				});
 			})
 		);
 
-		const map = new Map<string, { address: string; city: string; lat: number; lng: number }>();
+		const map = new Map<
+			string,
+			{ address: string; city: string; lat: number; lng: number; lotAcres: number }
+		>();
 		for (const res of results) {
 			for (const f of res.features) {
 				let lat = 0,
@@ -222,7 +225,8 @@ export const mesa: CountyDataSource = {
 					address: f.attributes.LOCATION ?? '',
 					city: '',
 					lat,
-					lng
+					lng,
+					lotAcres: f.attributes.Acres ?? 0
 				});
 			}
 		}
