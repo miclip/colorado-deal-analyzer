@@ -52,8 +52,10 @@
 	}
 
 	function defaultRadiusFor(p: PropertyData): number {
-		if (p.lotAcres >= 5) return 2;
-		if (p.lotAcres >= 1) return 1;
+		if (p.lotAcres >= 20) return 10;
+		if (p.lotAcres >= 10) return 5;
+		if (p.lotAcres >= 3) return 3;
+		if (p.lotAcres >= 1) return 2;
 		return 0.5;
 	}
 

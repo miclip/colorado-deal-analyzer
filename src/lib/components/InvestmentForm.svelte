@@ -216,6 +216,9 @@
 			<option value={0.5}>0.5 miles</option>
 			<option value={1}>1 mile</option>
 			<option value={2}>2 miles</option>
+			<option value={3}>3 miles</option>
+			<option value={5}>5 miles</option>
+			<option value={10}>10 miles</option>
 		</select>
 	</div>
 
