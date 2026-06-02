@@ -26,7 +26,7 @@ A single-page app that fetches Colorado county property data from public ArcGIS 
 | Boulder | SQL LIKE on parcels | Yes (full/half/3/4) | Yes | Full chain | Yes | Yes |
 | Broomfield | SQL LIKE on parcels | Yes | Yes | Most recent only | Yes | Yes |
 | Denver | SQL LIKE on parcels | Yes | Yes | Partial (fallback to parcels) | No | Yes |
-| Larimer | SQL LIKE on parcels | No | No | Full chain | No | No |
+| Larimer | SQL LIKE on parcels | No | No | Full chain | No | Yes (computed from polygon) |
 | Mesa | SQL LIKE on parcels | Yes | Yes | Most recent only | Yes | Yes |
 | Weld | SQL LIKE on parcels | Yes | Yes | Full chain | Yes | Yes |
 

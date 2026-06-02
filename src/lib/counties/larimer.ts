@@ -1,7 +1,7 @@
 import type { CountyDataSource } from './types';
 import type { PropertyData, BuildingInfo, SaleRecord, SearchResult } from '$lib/types';
 import { queryArcGIS } from '$lib/arcgis';
-import { chunk, unixMsToDate, normalizeAddress } from '$lib/utils';
+import { chunk, unixMsToDate, normalizeAddress, ringsToAcres } from '$lib/utils';
 
 const BASE = 'https://maps1.larimer.org/arcgis/rest/services';
 const SVC = {
@@ -66,10 +66,12 @@ export const larimer: CountyDataSource = {
 		// Get lat/lng from polygon centroid
 		let lat = 0,
 			lng = 0;
+		let lotAcres = 0;
 		if (parcel.geometry?.rings) {
 			const center = polygonCentroid(parcel.geometry.rings);
 			lat = center.lat;
 			lng = center.lng;
+			lotAcres = ringsToAcres(parcel.geometry.rings, lat);
 		}
 
 		return {
@@ -79,7 +81,7 @@ export const larimer: CountyDataSource = {
 			neighborhood: a.TAXDIST ?? '',
 			lat,
 			lng,
-			lotAcres: 0, // not available in ArcGIS
+			lotAcres,
 			ownerName: a.NAME ?? '',
 			building: null, // building data only in bulk CSV downloads
 			areas: [],
@@ -168,17 +170,19 @@ export const larimer: CountyDataSource = {
 			for (const f of res.features) {
 				let lat = 0,
 					lng = 0;
+				let lotAcres = 0;
 				if (f.geometry?.rings) {
 					const center = polygonCentroid(f.geometry.rings);
 					lat = center.lat;
 					lng = center.lng;
+					lotAcres = ringsToAcres(f.geometry.rings, lat);
 				}
 				map.set(f.attributes.PARCELNUM, {
 					address: f.attributes.LOCADDRESS ?? '',
 					city: f.attributes.LOCCITY ?? '',
 					lat,
 					lng,
-					lotAcres: 0
+					lotAcres
 				});
 			}
 		}

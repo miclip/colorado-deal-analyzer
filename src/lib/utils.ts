@@ -65,6 +65,32 @@ export function median(values: number[]): number {
 }
 
 /**
+ * Compute the area of a WGS84 polygon (ArcGIS rings format) in acres.
+ * Uses an equirectangular projection scaled at the polygon's latitude — accurate
+ * to <0.5% for typical parcel-sized shapes. Handles holes by subtracting inner rings.
+ */
+export function ringsToAcres(rings: number[][][], lat: number): number {
+	if (!rings || rings.length === 0) return 0;
+	const latRad = lat * (Math.PI / 180);
+	const mPerDegLat = 111132.92;
+	const mPerDegLng = 111319.49 * Math.cos(latRad);
+	let totalM2 = 0;
+	for (let r = 0; r < rings.length; r++) {
+		const ring = rings[r];
+		if (ring.length < 3) continue;
+		let signed = 0;
+		for (let i = 0; i < ring.length; i++) {
+			const [x1, y1] = ring[i];
+			const [x2, y2] = ring[(i + 1) % ring.length];
+			signed += x1 * mPerDegLng * (y2 * mPerDegLat) - x2 * mPerDegLng * (y1 * mPerDegLat);
+		}
+		// First ring = outer (positive), subsequent rings = holes (subtract)
+		totalM2 += r === 0 ? Math.abs(signed) / 2 : -Math.abs(signed) / 2;
+	}
+	return Math.max(totalM2, 0) / 4046.8564224;
+}
+
+/**
  * Split an array into chunks of the given size.
  */
 export function chunk<T>(arr: T[], size: number): T[][] {
